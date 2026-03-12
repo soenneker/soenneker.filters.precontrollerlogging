@@ -27,7 +27,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\Soenneker.Filters.PreControllerLogging.csproj" />
+        <ProjectReference Include="..\..\src\Soenneker.Filters.PreControllerLogging\Soenneker.Filters.PreControllerLogging.csproj" />
     </ItemGroup>
 
     <ItemGroup>
