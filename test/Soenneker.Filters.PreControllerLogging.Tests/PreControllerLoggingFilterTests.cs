@@ -1,16 +1,15 @@
-﻿using Soenneker.Tests.FixturedUnit;
-using Xunit;
+using Soenneker.Tests.HostedUnit;
 
 namespace Soenneker.Filters.PreControllerLogging.Tests;
 
-[Collection("Collection")]
-public sealed class PreControllerLoggingFilterTests : FixturedUnitTest
+[ClassDataSource<Host>(Shared = SharedType.PerTestSession)]
+public sealed class PreControllerLoggingFilterTests : HostedUnitTest
 {
-    public PreControllerLoggingFilterTests(Fixture fixture, ITestOutputHelper output) : base(fixture, output)
+    public PreControllerLoggingFilterTests(Host host) : base(host)
     {
     }
 
-    [Fact]
+    [Test]
     public void Default()
     {
 
