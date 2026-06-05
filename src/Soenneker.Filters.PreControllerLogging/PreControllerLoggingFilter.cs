@@ -14,6 +14,12 @@ namespace Soenneker.Filters.PreControllerLogging;
 /// <inheritdoc cref="IPreControllerLoggingFilter"/>
 public sealed class PreControllerLoggingFilterAttribute : ActionFilterAttribute
 {
+    /// <summary>
+    /// Executes the on action execution async operation.
+    /// </summary>
+    /// <param name="context">The context.</param>
+    /// <param name="next">The next.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
         context.HttpContext.Items[ApiConstants.ControllerHitFlag] = true;
