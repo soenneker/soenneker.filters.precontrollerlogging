@@ -11,7 +11,9 @@ using Soenneker.Extensions.Task;
 
 namespace Soenneker.Filters.PreControllerLogging;
 
-/// <inheritdoc cref="IPreControllerLoggingFilter"/>
+/// <summary>
+/// An MVC action filter that records that a controller was reached and logs the request headers and body when model validation fails.
+/// </summary>
 public sealed class PreControllerLoggingFilterAttribute : ActionFilterAttribute
 {
     /// <summary>
