@@ -1,20 +1,17 @@
 ﻿using Soenneker.Filters.PreControllerLogging.Abstract;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Soenneker.Constants.Apis;
-using Soenneker.Extensions.HttpRequests;
-using Soenneker.Extensions.ValueTask;
-using Soenneker.Extensions.Dictionaries.IHeader;
-using Soenneker.Extensions.Task;
 
 namespace Soenneker.Filters.PreControllerLogging;
 
 /// <summary>
 /// An MVC action filter that records that a controller was reached and logs the request headers and body when model validation fails.
 /// </summary>
-public sealed class PreControllerLoggingFilterAttribute : ActionFilterAttribute
+public sealed class PreControllerLoggingFilterAttribute : ActionFilterAttribute, IPreControllerLoggingFilter
 {
     /// <summary>
     /// Executes the on action execution async operation.
@@ -30,13 +27,17 @@ public sealed class PreControllerLoggingFilterAttribute : ActionFilterAttribute
         {
             var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<PreControllerLoggingFilterAttribute>>();
 
-            string headers = context.HttpContext.Request.Headers.ToJsonString();
-            string? body = await context.HttpContext.Request.ReadBody().NoSync();
+            var invalidFields = new List<string>();
+            foreach (KeyValuePair<string, Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateEntry> entry in context.ModelState)
+            {
+                if (entry.Value is { Errors.Count: > 0 })
+                    invalidFields.Add(entry.Key);
+            }
 
-            logger.LogWarning("Model validation failed for {Method} {Path}. Headers: {Headers} Body: {Body}", context.HttpContext.Request.Method,
-                context.HttpContext.Request.Path + context.HttpContext.Request.QueryString, headers, body);
+            logger.LogWarning("Model validation failed for {Method} {Path}. Invalid fields: {InvalidFields}", context.HttpContext.Request.Method,
+                context.HttpContext.Request.Path, invalidFields);
         }
 
-        await base.OnActionExecutionAsync(context, next).NoSync();
+        await base.OnActionExecutionAsync(context, next).ConfigureAwait(false);
     }
 }

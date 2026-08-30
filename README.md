@@ -5,34 +5,39 @@
 
 # Soenneker.Filters.PreControllerLogging
 
-Marks when a controller is hit and logs invalid model state errors.
+An MVC action filter that marks requests reaching controller execution and records validation failures without logging request credentials or bodies.
 
-## Install
+## Installation
 
 ```bash
 dotnet add package Soenneker.Filters.PreControllerLogging
 ```
 
-## Quick start
+## Register globally
 
 ```csharp
 using Soenneker.Filters.PreControllerLogging.Registrars;
 
-FilterCollection filterCollection = /* obtain from your application */;
-var result = filterCollection.AddPreControllerLoggingFilter();
+services.AddControllers(options =>
+{
+    options.Filters.AddPreControllerLoggingFilter();
+});
 ```
 
-Adds a new `PreControllerLoggingFilterAttribute` to the filter collection.
+The registrar adds one `PreControllerLoggingFilterAttribute` to MVC's filter collection and returns that collection for chaining.
 
-## What you get
+## Behavior
 
-- `IPreControllerLoggingFilter` — Marks when a controller is hit and logs invalid model state errors.
-- `PreControllerLoggingFilterRegistrar` — Marks when a controller is hit and logs invalid model state errors.
-- `PreControllerLoggingFilterAttribute` — An MVC action filter that records that a controller was reached and logs the request headers and body when model validation fails.
+Before the controller action runs, the filter sets:
 
-## API at a glance
+```csharp
+httpContext.Items[ApiConstants.ControllerHitFlag] = true;
+```
 
-| API | What it does | Result / important behavior |
-| --- | --- | --- |
-| `PreControllerLoggingFilterRegistrar.AddPreControllerLoggingFilter(filterCollection)` | Adds a new `PreControllerLoggingFilterAttribute` to the filter collection. | The resulting filter Collection. |
-| `PreControllerLoggingFilterAttribute.OnActionExecutionAsync(context, next)` | Executes the on action execution async operation. | A task that represents the asynchronous operation. |
+When model state is invalid, it writes a warning containing the HTTP method, request path, and names of fields with validation errors. It deliberately omits the query string, headers, attempted values, validation exception details, and body because those commonly contain tokens, cookies, personal data, and passwords.
+
+The filter then continues the normal MVC action-filter pipeline. It does not create a validation response, change status codes, or replace ASP.NET Core's `[ApiController]` model-state behavior.
+
+## Logging considerations
+
+Field names and paths can still be application-sensitive. Apply normal log access controls and retention policies. If a reverse proxy accepts arbitrary paths, normalize or constrain path logging at the application boundary as appropriate.
